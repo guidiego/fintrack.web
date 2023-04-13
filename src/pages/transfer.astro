@@ -1,0 +1,84 @@
+---
+import { getCli, getAccounts, Transfer, saveTransfer } from "../client/fintrack";
+
+const isPost = Astro.request.method === "POST"
+const urlCookie = Astro.cookies.get("fintrackApiUrl").value
+const tokenCookie = Astro.cookies.get("fintrackApiToken").value
+
+
+if (urlCookie == undefined || tokenCookie == undefined) {
+	return Astro.redirect("/")
+}
+
+const cli = getCli(urlCookie, tokenCookie)
+
+if (isPost) {
+	const t = await Astro.request.formData()
+	const value = t.get("value")
+	const fromAccountId = t.get("fromAccountId")
+	const toAccountId = t.get("toAccountId")
+
+	if (fromAccountId && toAccountId) {
+		const transfer: Transfer = {
+			value: value ? parseFloat(value.toString()) : 0,
+			fromAccountId: fromAccountId.toString(),
+			toAccountId: toAccountId.toString(),
+		}
+
+		await saveTransfer(cli, transfer);
+	}
+}
+
+const accounts = await getAccounts(cli);
+---
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body>
+		<header class="p-1 text-center bg-teal-600 text-white shadow-md">
+			<h1 class="text-xs">FinTrack</h1>
+		</header>
+        <nav class="flex shadow-md">
+            <a class="border-b-2 border-white hover:border-teal-400 p-5 hover:text-teal-400 flex-1 text-center" href="/transaction">Transact</a>
+            <div class="border-b-2 border-teal-600 p-5 text-teal-600 flex-1 text-center">Transfer</div>
+        </nav>
+		<form class="max-w-xs mx-auto flex flex-col gap-5 mt-10" method="post">
+			<input class="rounded-md shadow-md outline-none text-md p-4 w-full" name="value" placeholder="00.00" type="number" step=".01" />
+			<select class="rounded-md shadow-md outline-none text-md p-4 w-full" name="fromAccountId">
+				{
+					accounts.map(({ id, name }) => (
+						<option value={id}>{name}</option>
+					))
+				}
+			</select>
+            <select class="rounded-md shadow-md outline-none text-md p-4 w-full" name="toAccountId">
+				{
+					accounts.map(({ id, name }) => (
+						<option value={id}>{name}</option>
+					))
+				}
+			</select>
+			<button id="submit" class="rounded-md outline-none text-md p-4 w-full bg-teal-600 text-white shadow-md">
+				Save
+			</button>
+		</form>
+	</body>
+</html>
+
+<script>
+	const button = document.getElementById("submit") as HTMLButtonElement;
+
+	button?.addEventListener("click", function () {
+		setTimeout(() => {
+			this.disabled = true;
+			this.classList.add("bg-teal-800")
+			this.textContent = "💸 💸 💸"
+		}, 50)
+	})
+
+</script>
