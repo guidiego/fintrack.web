@@ -7,7 +7,7 @@ export const getCli = (baseURL: string, token: string) => {
         cli = axios.create({
             baseURL,
             headers: {
-                "Token": token,
+                "token": token,
             }
         })
     }
