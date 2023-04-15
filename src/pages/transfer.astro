@@ -1,5 +1,9 @@
 ---
+import { Header, TabsEnum } from "../components/Header"
+import { TextField } from "../components/TextField"
+import { Select } from "../components/Select"
 import { getCli, getAccounts, Transfer, saveTransfer } from "../client/fintrack";
+import { OpButton } from "../components/OpButton";
 
 const isPost = Astro.request.method === "POST"
 const urlCookie = Astro.cookies.get("fintrackApiUrl").value
@@ -26,6 +30,7 @@ if (isPost) {
 		}
 
 		await saveTransfer(cli, transfer);
+		return Astro.redirect('/transfer')
 	}
 }
 
@@ -39,33 +44,29 @@ const accounts = await getAccounts(cli);
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro</title>
 	</head>
-	<body>
-		<header class="p-1 text-center bg-teal-600 text-white shadow-md">
-			<h1 class="text-xs">FinTrack</h1>
-		</header>
-        <nav class="flex shadow-md">
-            <a class="border-b-2 border-white hover:border-teal-400 p-5 hover:text-teal-400 flex-1 text-center" href="/transaction">Transact</a>
-            <div class="border-b-2 border-teal-600 p-5 text-teal-600 flex-1 text-center">Transfer</div>
-        </nav>
-		<form class="max-w-xs mx-auto flex flex-col gap-5 mt-10" method="post">
-			<input class="rounded-md shadow-md outline-none text-md p-4 w-full" name="value" placeholder="00.00" type="number" step=".01" />
-			<select class="rounded-md shadow-md outline-none text-md p-4 w-full" name="fromAccountId">
+	<body class="bg-slate-100 min-h-[100dvh]">
+		<Header value={TabsEnum.Transfer} />
+		<form class="max-w-xs mx-auto flex flex-col gap-8 mt-10" method="post">
+            <TextField label="Value" name="value" type="number" step=".01"/>
+			<Select label="From" name="fromAccountId">
 				{
 					accounts.map(({ id, name }) => (
 						<option value={id}>{name}</option>
 					))
 				}
-			</select>
-            <select class="rounded-md shadow-md outline-none text-md p-4 w-full" name="toAccountId">
+			</Select>
+            <Select label="To" name="toAccountId">
 				{
 					accounts.map(({ id, name }) => (
 						<option value={id}>{name}</option>
 					))
 				}
-			</select>
-			<button id="submit" class="rounded-md outline-none text-md p-4 w-full bg-teal-600 text-white shadow-md">
-				Save
-			</button>
+			</Select>
+			<div class="absolute bottom-0 left-0 w-full p-7 flex gap-5 bg-white shadow-md">
+				<button id="submit" class="flex-1 rounded-md outline-none text-md p-4 w-full bg-teal-600 text-white shadow-md">
+					Transfer
+				</button>
+			</div>
 		</form>
 	</body>
 </html>
