@@ -23,8 +23,9 @@ if (isPost) {
 	const toAccountId = t.get("toAccountId")
 
 	if (fromAccountId && toAccountId) {
+		const v = value ? parseFloat(value.toString().replace('€ ', '')) : 0;
 		const transfer: Transfer = {
-			value: value ? parseFloat(value.toString().replace(',', '.')) : 0,
+			value: v,
 			fromAccountId: fromAccountId.toString(),
 			toAccountId: toAccountId.toString(),
 		}
@@ -46,7 +47,7 @@ const accounts = await getAccounts(cli);
 	</head>
 	<body class="bg-slate-100">
 		<Header value={TabsEnum.Transfer} />
-		<form class="max-w-xs mx-auto flex flex-col gap-8 mt-10" method="post">
+		<form id="form" class="max-w-xs mx-auto flex flex-col gap-8 mt-10" method="post">
 			<TextField label="Value" name="value" placeholder="€ 00.00" inputMode="numeric" />
 			<Select label="From" name="fromAccountId">
 				{
@@ -73,7 +74,7 @@ const accounts = await getAccounts(cli);
 </html>
 
 <script>
-	const button = document.getElementById("submit") as HTMLButtonElement;
+	const form = document.getElementById("form") as HTMLFormElement;
 	const ipt = document.querySelector("[name='value']")
 	const alert = document.getElementById("alert");
 
@@ -101,12 +102,12 @@ const accounts = await getAccounts(cli);
 		el.value = `€ ${entireFormatted.length > 2 ? entireFormatted : entireFormatted}.${decimal.length < 2 ? "0" + decimal : decimal}`
 	})
 
-	button?.addEventListener("click", function () {
-		setTimeout(() => {
-			this.disabled = true;
-			this.classList.add("bg-indigo-800")
-			this.textContent = "💸 💸 💸"
-		}, 50)
+	form?.addEventListener("submit", function () {
+		const btn = this.querySelector("button") as HTMLButtonElement
+		btn.disabled = true;
+		btn.classList.add("bg-indigo-800")
+		btn.textContent = "💸 💸 💸"
 	})
+
 
 </script>
