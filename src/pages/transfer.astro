@@ -47,7 +47,7 @@ const accounts = await getAccounts(cli);
 	<body class="bg-slate-100 min-h-[100dvh]">
 		<Header value={TabsEnum.Transfer} />
 		<form class="max-w-xs mx-auto flex flex-col gap-8 mt-10" method="post">
-            <TextField label="Value" name="value" type="number" step=".01"/>
+            <TextField label="Value" name="value" placeholder="00.00" pattern="[0-9]*" inputMode="numeric" step=".01" />
 			<Select label="From" name="fromAccountId">
 				{
 					accounts.map(({ id, name }) => (
