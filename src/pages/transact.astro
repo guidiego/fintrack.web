@@ -96,7 +96,7 @@ const [
 
 <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3/masking-input.js" data-autoinit="true"></script>
 <script>
-	const button = document.getElementById("submit") as HTMLButtonElement;
+	const form = document.getElementById("form") as HTMLFormElement;
 	const ipt = document.querySelector("[name='value']")
 	const alert = document.getElementById("alert");
 
@@ -124,12 +124,10 @@ const [
 		el.value = `€ ${entireFormatted.length > 2 ? entireFormatted : entireFormatted}.${decimal.length < 2 ? "0" + decimal : decimal}`
 	})
 
-	button?.addEventListener("click", function () {
-		setTimeout(() => {
-			this.disabled = true;
-			this.classList.add("bg-indigo-800")
-			this.textContent = "💸 💸 💸"
-		}, 50)
+	form?.addEventListener("submit", function () {
+		const btn = this.querySelector("button") as HTMLButtonElement
+		btn.disabled = true;
+		btn.classList.add("bg-indigo-800")
+		btn.textContent = "💸 💸 💸"
 	})
-
 </script>
