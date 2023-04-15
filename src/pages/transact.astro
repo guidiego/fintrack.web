@@ -3,15 +3,16 @@ import { Header, TabsEnum } from "../components/Header";
 import { Select } from "../components/Select";
 import { TextField } from "../components/TextField";
 import { OpButton } from "../components/OpButton";
+import { Button } from "../components/Button";
+
 import { getCli, getBudgets, getAccounts, Transaction, saveTransaction } from "../client/fintrack";
 
-const isPost = Astro.request.method === "POST"
-const urlCookie = Astro.cookies.get("fintrackApiUrl").value
-const tokenCookie = Astro.cookies.get("fintrackApiToken").value
-
+const showSuccess = Astro.url.searchParams.get('success') || false
+const isPost = Astro.request.method === "POST";
+const urlCookie = Astro.cookies.get("fintrackApiUrl").value;
+const tokenCookie = Astro.cookies.get("fintrackApiToken").value;
 
 if (urlCookie == undefined || tokenCookie == undefined) {
-	console.log("red")
 	return Astro.redirect("/")
 }
 
@@ -26,7 +27,7 @@ if (isPost) {
 	const positive = t.get("positive")
 
 	if (accountId && budgetId) {
-		const v = value ? parseFloat(value.toString().replace(',', '.')) : 0;
+		const v = value ? parseFloat(value.toString().replace('€ ', '')) : 0;
 		const transaction: Transaction = {
 			value: v * (positive ? 1 : -1),
 			accountId: accountId?.toString(),
@@ -38,7 +39,7 @@ if (isPost) {
 		}
 
 		await saveTransaction(cli, transaction);
-		return Astro.redirect('/transact')
+		return Astro.redirect('/transact?success=true')
 	}
 }
 
@@ -58,10 +59,16 @@ const [
 		<meta name="generator" content={Astro.generator} />
 		<title>Astro</title>
 	</head>
-	<body class="bg-slate-100 min-h-[100dvh]">
+	<body class="bg-slate-100">
 		<Header value={TabsEnum.Transact} />
 		<form class="max-w-xs mx-auto flex flex-col gap-8 mt-10" method="post">
-			<TextField label="Value" name="value" placeholder="99,99" pattern="[0-9]*" inputMode="decimal" step=".01" />
+			<div class="relative">
+				<TextField label="Value" name="value" placeholder="€ 00.00" inputMode="numeric">
+					<div class="absolute right-0 top-0 bottom-0 w-20">
+						<OpButton />
+					</div>
+				</TextField>
+			</div>
 			<TextField label="Description" name="description" placeholder="Description" />
 			<Select label="Account" name="accountId">
 				{
@@ -77,23 +84,50 @@ const [
 					))
 				}
 			</Select>
-			<div class="absolute bottom-0 left-0 w-full p-7 flex gap-5 bg-white shadow-md">
-                <OpButton />
-				<button id="submit" class="flex-[4] rounded-md outline-none text-md p-4 w-full bg-teal-600 text-white shadow-md">
-					Transact
-				</button>
-			</div>
+			<Button id="submit" className="mt-4">
+				Transact
+			</Button>
 		</form>
+		<div id="alert" class={(showSuccess ? "" : "hidden ") + "bg-emerald-200 rounded-md shadow-md p-4 absolute bottom-5 left-5 right-5 text-center text-xs font-semibold text-emerald-900 uppercase"}>
+			Trasaction done with success!
+		</div>
 	</body>
 </html>
 
+<script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3/masking-input.js" data-autoinit="true"></script>
 <script>
 	const button = document.getElementById("submit") as HTMLButtonElement;
+	const ipt = document.querySelector("[name='value']")
+	const alert = document.getElementById("alert");
+
+	if (alert && !alert.classList.contains("hidden")) {
+		setTimeout(() => {
+			alert.classList.add("hidden")
+		}, 3500)
+	}
+
+	ipt?.addEventListener("keyup", function (e) {
+		const el = e.target as HTMLInputElement;
+		const svalue = el.value.replace(".", "").replace("€", "").trim();
+		const value = parseInt(svalue).toString();
+		const entire = value.slice(0, value.length - 2);
+		const decimal = value.slice(value.length - 2, value.length);
+
+		let entireFormatted = "0";
+
+		if (entire.length < 2) {
+			entireFormatted = entire.length == 0 ? "00" : "0" + entire;
+		} else {
+			entireFormatted = entire;
+		}
+
+		el.value = `€ ${entireFormatted.length > 2 ? entireFormatted : entireFormatted}.${decimal.length < 2 ? "0" + decimal : decimal}`
+	})
 
 	button?.addEventListener("click", function () {
 		setTimeout(() => {
 			this.disabled = true;
-			this.classList.add("bg-teal-800")
+			this.classList.add("bg-indigo-800")
 			this.textContent = "💸 💸 💸"
 		}, 50)
 	})

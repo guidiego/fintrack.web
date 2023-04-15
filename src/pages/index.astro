@@ -1,4 +1,6 @@
 ---
+import { TextField } from "../components/TextField";
+
 let url: string | undefined;
 let token: string | undefined;
 
@@ -19,7 +21,7 @@ if (Astro.request.method === "POST") {
 }
 
 if (url && token) {
-	Astro.redirect("/transaction")
+	Astro.redirect("/transact")
 }
 ---
 <html lang="en">
@@ -28,16 +30,16 @@ if (url && token) {
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+		<title>FinTckr</title>
 	</head>
 	<body>
-		<header class="p-3 bg-teal-600 text-center text-white shadow-md">
-			<h1 class="font-bold text-lg">FinTrack</h1>
-		</header>
-		<form class="max-w-xs mx-auto flex flex-col gap-5 mt-10" method="post">
-			<input class="rounded-md shadow-md outline-none text-md p-4 w-full" name="url" placeholder="API Url" />
-			<input class="rounded-md shadow-md outline-none text-md p-4 w-full" name="token" placeholder="API Token" />
-			<button class="rounded-md shadow-md bg-teal-600 text-white text-md font-semibold p-4 w-full">Next</button>
+        <header class="p-3 bg-indigo-600 text-white text-center font-light text-lg">
+            Fin<span class="font-bold">Tckr</span>
+        </header>
+		<form class="max-w-xs mx-auto flex flex-col gap-8 mt-10" method="post">
+			<TextField label="API Url" name="url" placeholder="http://fintrack..." />
+			<TextField label="API Token" name="token" type="password" placeholder="XXXXXXX-XXXXXX-XXXXX" />
+			<button class="rounded-md shadow-md bg-indigo-600 text-white text-md font-semibold p-4 w-full">Next</button>
 		</form>
 	</body>
 </html>
