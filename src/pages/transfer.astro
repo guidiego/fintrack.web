@@ -1,11 +1,12 @@
 ---
-import { Header, TabsEnum } from "../components/Header"
-import { TextField } from "../components/TextField"
+import MainLayout from "../features/MainLayout.astro";
+import CoreAction from "../features/CoreAction.astro";
+import InputNumber from "../features/InputNumber.astro";
+import { TabsEnum } from "../components/Header"
 import { Select } from "../components/Select"
-import { getCli, getAccounts, Transfer, saveTransfer } from "../client/fintrack";
-import { Button } from "../components/Button";
+import { getCli, getAccounts, Transfer, saveTransfer, Account } from "../client/fintrack";
 
-const showSuccess = Astro.url.searchParams.get('success') || false
+
 const isPost = Astro.request.method === "POST"
 const urlCookie = Astro.cookies.get("fintrackApiUrl").value
 const tokenCookie = Astro.cookies.get("fintrackApiToken").value
@@ -36,78 +37,32 @@ if (isPost) {
 	}
 }
 
-const accounts = await getAccounts(cli);
+const accountCookie = Astro.cookies.get("fintrackAccounts")
+const hasCacheAccount = !!accountCookie.value
+const {accountCache}: Record<string, Account[]>= hasCacheAccount ? accountCookie.json() : {};
+const accounts = hasCacheAccount ? accountCache : await getAccounts(cli);
+
+if (!hasCacheAccount) {
+	Astro.cookies.set("fintrackAccounts", { accountCache: accounts })
+}
 ---
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<meta name="theme-color" content="#4f46e5" />
-		<title>FinTckr</title>
-	</head>
-	<body class="bg-slate-100">
-		<Header value={TabsEnum.Transfer} />
-		<form id="form" class="max-w-xs mx-auto flex flex-col gap-8 mt-10" method="post">
-			<TextField label="Value" name="value" placeholder="€ 00.00" inputMode="numeric" />
-			<Select label="From" name="fromAccountId">
-				{
-					accounts.map(({ id, name }) => (
-						<option value={id}>{name}</option>
-					))
-				}
-			</Select>
-            <Select label="To" name="toAccountId">
-				{
-					accounts.map(({ id, name }) => (
-						<option value={id}>{name}</option>
-					))
-				}
-			</Select>
-			<Button id="submit" className="mt-2">
-				Transfer
-			</Button>
-		</form>
-		<div id="alert" class={(showSuccess ? "" : "hidden ") + "bg-emerald-200 rounded-md shadow-md p-4 absolute bottom-5 left-5 right-5 text-center text-xs font-semibold text-emerald-900 uppercase"}>
-			Transfer done with success!
-		</div>
-	</body>
-</html>
 
-<script>
-	const form = document.getElementById("form") as HTMLFormElement;
-	const ipt = document.querySelector("[name='value']")
-	const alert = document.getElementById("alert");
-
-	if (alert && !alert.classList.contains("hidden")) {
-		setTimeout(() => {
-			alert.classList.add("hidden")
-		}, 3500)
-	}
-
-	ipt?.addEventListener("keyup", function (e) {
-		const el = e.target as HTMLInputElement;
-		const svalue = el.value.replace(".", "").replace("€", "").trim();
-		const value = parseInt(svalue).toString();
-		const entire = value.slice(0, value.length - 2);
-		const decimal = value.slice(value.length - 2, value.length);
-
-		let entireFormatted = "0";
-
-		if (entire.length < 2) {
-			entireFormatted = entire.length == 0 ? "00" : "0" + entire;
-		} else {
-			entireFormatted = entire;
-		}
-
-		el.value = `€ ${entireFormatted.length > 2 ? entireFormatted : entireFormatted}.${decimal.length < 2 ? "0" + decimal : decimal}`
-	})
-
-	form?.addEventListener("submit", function () {
-		const btn = this.querySelector("button") as HTMLButtonElement
-		btn.disabled = true;
-		btn.classList.add("bg-indigo-800")
-		btn.textContent = "💸 💸 💸"
-	})
-</script>
+<MainLayout alertMessage="Transfer done with success!" tab={TabsEnum.Transfer}>
+	<CoreAction cta="Transfer">
+		<InputNumber />
+		<Select label="From" name="fromAccountId">
+			{
+				accounts.map(({ id, name }) => (
+					<option value={id}>{name}</option>
+				))
+			}
+		</Select>
+		<Select label="To" name="toAccountId">
+			{
+				accounts.map(({ id, name }) => (
+					<option value={id}>{name}</option>
+				))
+			}
+		</Select>
+	</CoreAction>
+</MainLayout>

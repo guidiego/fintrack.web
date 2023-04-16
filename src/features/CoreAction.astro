@@ -1,0 +1,22 @@
+---
+interface Props {
+    cta: string
+}
+
+import { Button } from "../components/Button";
+---
+<form class="max-w-xs mx-auto flex flex-col gap-8 mt-10" method="post">
+    <slot />
+    <Button client:load id="submit" className="mt-4">
+        {Astro.props.cta}
+    </Button>
+</form>
+
+<script is:inline>
+    const btn = document.getElementById("submit");
+    document.querySelector("form")?.addEventListener("submit", () => {
+        btn.disabled = true;
+        btn.classList.add("bg-indigo-800")
+        btn.textContent = "💸 💸 💸"
+    })
+</script>

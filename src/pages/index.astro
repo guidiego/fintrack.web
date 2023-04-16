@@ -21,7 +21,7 @@ if (Astro.request.method === "POST") {
 }
 
 if (url && token) {
-	Astro.redirect("/transact")
+	return Astro.redirect("/transact")
 }
 ---
 <html lang="en">

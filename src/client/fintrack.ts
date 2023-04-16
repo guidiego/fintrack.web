@@ -15,7 +15,7 @@ export const getCli = (baseURL: string, token: string) => {
     return cli;
 }
 
-type Budget = {
+export type Budget = {
     id: string;
     budget: string;
 }
@@ -23,7 +23,7 @@ type Budget = {
 export const getBudgets = (cli: AxiosInstance) =>
     cli.get<Budget[]>("/budget").then(({ data }) => data)
 
-type Account = {
+export type Account = {
     id: string;
     name: string;
 }
@@ -51,3 +51,13 @@ export type Transfer = {
 
 export const saveTransfer = (cli: AxiosInstance, t: Transfer) =>
     cli.post<Transfer>("/transfer", t)
+
+export type ToSchedule = {
+    ref: string;
+    day: number;
+    value: number;
+    autoDebit: boolean;
+}
+
+export const getNextTransactions = (cli: AxiosInstance) =>
+    cli.get<ToSchedule[]>("/to-schedule").then(({ data }) => data)

@@ -1,0 +1,29 @@
+---
+import { TextField } from "../components/TextField";
+---
+
+<TextField label="Value" name="value" placeholder="€ 00.00" inputMode="numeric">
+    <slot />
+</TextField>
+
+<script>
+    const ipt = document.querySelector("[name='value']")
+
+    ipt?.addEventListener("keyup", function (e) {
+        const el = e.target as HTMLInputElement;
+        const svalue = el.value.replace(".", "").replace("€", "").trim();
+        const value = parseInt(svalue).toString();
+        const entire = value.slice(0, value.length - 2);
+        const decimal = value.slice(value.length - 2, value.length);
+
+        let entireFormatted = "0";
+
+        if (entire.length < 2) {
+            entireFormatted = entire.length == 0 ? "00" : "0" + entire;
+        } else {
+            entireFormatted = entire;
+        }
+
+        el.value = `€ ${entireFormatted.length > 2 ? entireFormatted : entireFormatted}.${decimal.length < 2 ? "0" + decimal : decimal}`
+    })
+</script>

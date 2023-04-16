@@ -1,0 +1,38 @@
+---
+import MainLayout from "../features/MainLayout.astro";
+
+import { TabsEnum } from "../components/Header";
+import { getCli, getNextTransactions, ToSchedule } from "../client/fintrack";
+
+const urlCookie = Astro.cookies.get("fintrackApiUrl").value;
+const tokenCookie = Astro.cookies.get("fintrackApiToken").value;
+
+if (urlCookie == undefined || tokenCookie == undefined) {
+	return Astro.redirect("/")
+}
+
+const cli = getCli(urlCookie, tokenCookie)
+const today = new Date().toDateString();
+const upCommingCookie = Astro.cookies.get("fintrackUpcomming")
+const hasUpcommingCache = !!upCommingCookie.value
+const {upcommingCache, date}: {upcommingCache: ToSchedule[], date: string}= hasUpcommingCache ? upCommingCookie.json() : {};
+const schedules = hasUpcommingCache && date === today ? upcommingCache : await getNextTransactions(cli);
+
+if (!hasUpcommingCache || date !== today) {
+	Astro.cookies.set("fintrackUpcomming", { upcommingCache: schedules, date: today })
+}
+---
+<MainLayout tab={TabsEnum.Upcoming}>
+	<div>
+		{schedules.map((s) => (
+			<div class="bg-white p-4 border-b-[1px] border-slate-100 shadow-md flex items-center">
+				<div class="flex-1">
+					<div class="font-semibold text-slate-800">{s.ref}</div>
+					<div class="text-xs"><span class="font-semibold">Day: </span>{s.day}/04/2023</div>
+				</div>
+				<div class="text-lg font-semibold">€ {s.value}</div>
+			</div>
+		))}
+	</div>
+
+</MainLayout>
