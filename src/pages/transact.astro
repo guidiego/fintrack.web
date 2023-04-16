@@ -12,6 +12,9 @@ import { getCli, getBudgets, getAccounts, Transaction, saveTransaction, Account,
 const isPost = Astro.request.method === "POST";
 const urlCookie = Astro.cookies.get("fintrackApiUrl").value;
 const tokenCookie = Astro.cookies.get("fintrackApiToken").value;
+const today = new Date();
+const year = today.getFullYear().toString();
+const month = today.getMonth() + 1;
 
 if (urlCookie == undefined || tokenCookie == undefined) {
 	return Astro.redirect("/")
@@ -56,7 +59,7 @@ const [
 	budgets,
 	accounts
 ] = await Promise.all([
-	hasCacheBudget ? Promise.resolve(budgetCache) : getBudgets(cli),
+	hasCacheBudget ? Promise.resolve(budgetCache) : getBudgets(cli, year, month < 10 ? `0${month}` : month.toString(), false),
 	hasCacheAccount ? Promise.resolve(accountCache) : getAccounts(cli),
 ])
 

@@ -20,8 +20,8 @@ export type Budget = {
     budget: string;
 }
 
-export const getBudgets = (cli: AxiosInstance) =>
-    cli.get<Budget[]>("/budget").then(({ data }) => data)
+export const getBudgets = (cli: AxiosInstance, year: string, month: string, exact: boolean) =>
+    cli.get<Budget[]>(`/budget?year=${year}&month=${month}${exact ? "&exact=true" : ""}`).then(({ data }) => data)
 
 export type Account = {
     id: string;
