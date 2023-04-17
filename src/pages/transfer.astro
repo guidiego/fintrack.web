@@ -21,15 +21,15 @@ const cli = getCli(urlCookie, tokenCookie)
 if (isPost) {
 	const t = await Astro.request.formData()
 	const value = t.get("value")
-	const fromAccountId = t.get("fromAccountId")
-	const toAccountId = t.get("toAccountId")
+	const fromRecipientId = t.get("fromRecipientId")
+	const toRecipientId = t.get("toRecipientId")
 
-	if (fromAccountId && toAccountId) {
+	if (fromRecipientId && toRecipientId) {
 		const v = value ? parseFloat(value.toString().replace('€ ', '')) : 0;
 		const transfer: Transfer = {
 			value: v,
-			fromAccountId: fromAccountId.toString(),
-			toAccountId: toAccountId.toString(),
+			fromRecipientId: fromRecipientId.toString(),
+			toRecipientId: toRecipientId.toString(),
 		}
 
 		await saveTransfer(cli, transfer);
@@ -37,27 +37,20 @@ if (isPost) {
 	}
 }
 
-const accountCookie = Astro.cookies.get("fintrackAccounts")
-const hasCacheAccount = !!accountCookie.value
-const {accountCache}: Record<string, Account[]>= hasCacheAccount ? accountCookie.json() : {};
-const accounts = hasCacheAccount ? accountCache : await getAccounts(cli);
-
-if (!hasCacheAccount) {
-	Astro.cookies.set("fintrackAccounts", { accountCache: accounts })
-}
+const accounts = await getAccounts(cli);
 ---
 
 <MainLayout alertMessage="Transfer done with success!" tab={TabsEnum.Transfer}>
 	<CoreAction cta="Transfer">
 		<InputNumber />
-		<Select label="From" name="fromAccountId">
+		<Select label="From" name="fromRecipientId">
 			{
 				accounts.map(({ id, name }) => (
 					<option value={id}>{name}</option>
 				))
 			}
 		</Select>
-		<Select label="To" name="toAccountId">
+		<Select label="To" name="toRecipientId">
 			{
 				accounts.map(({ id, name }) => (
 					<option value={id}>{name}</option>

@@ -2,7 +2,7 @@
 import MainLayout from "../features/MainLayout.astro";
 
 import { TabsEnum } from "../components/Header";
-import { getCli, getNextTransactions, ToSchedule } from "../client/fintrack";
+import { getCli, getNextTransactions } from "../client/fintrack";
 
 const urlCookie = Astro.cookies.get("fintrackApiUrl").value;
 const tokenCookie = Astro.cookies.get("fintrackApiToken").value;
@@ -13,25 +13,17 @@ if (urlCookie == undefined || tokenCookie == undefined) {
 
 const cli = getCli(urlCookie, tokenCookie)
 const todayD = new Date();
-const today = todayD.toDateString();
 const day = todayD.getDate()
-const upCommingCookie = Astro.cookies.get("fintrackUpcomming")
-const hasUpcommingCache = !!upCommingCookie.value
-const {upcommingCache, date}: {upcommingCache: ToSchedule[], date: string}= hasUpcommingCache ? upCommingCookie.json() : {};
-const schedules = hasUpcommingCache && date === today ? upcommingCache : await getNextTransactions(cli);
-
-if (!hasUpcommingCache || date !== today) {
-	Astro.cookies.set("fintrackUpcomming", { upcommingCache: schedules, date: today })
-}
+const {upcomming} = await getNextTransactions(cli);
 ---
 <MainLayout tab={TabsEnum.Upcoming}>
 	<div>
-		{schedules.sort((a, b) => a.day - b.day).map((s) => (
+		{upcomming.sort((a, b) => a.day - b.day).map((s) => (
 			<div class="bg-white h-20 flex items-center ">
 				<div class={"w-2 h-full " + (s.day == day ? "bg-indigo-600" : "bg-slate-600")}></div>
 				<div class={"px-4 h-full flex items-center flex-1 border-b-[1px] border-slate-100 " + (s.autoDebit ? "opacity-60" : "")}>
 					<div class="flex-1">
-						<div class="font-semibold text-slate-800">{s.ref}</div>
+						<div class="font-semibold text-slate-800">{s.name}</div>
 						<div class="text-xs"><span class="font-semibold">Day: </span>{s.day}/04/2023</div>
 					</div>
 					<div class={"text-lg font-semibold " + (s.value >= 0 ? "text-emerald-600" : "text-rose-700")}>€ {s.value}</div>
