@@ -14,8 +14,12 @@ if (urlCookie == undefined || tokenCookie == undefined) {
 
 const cli = getCli(urlCookie, tokenCookie)
 const budgets = await getBudgets(cli, "2023", "04")
+const total = budgets.reduce((a, c) => a + (c.limit + c.used), 0)
 ---
 <MainLayout tab={TabsEnum.Budget}>
+	<div class="bg-white text-center uppecase font-semibold text-xs p-4 border-b-[1px] border-slate-100 text-indigo-600">
+		€ {total.toFixed(2)}
+	</div>
 	{
 		budgets.map((b) => (
 			<div class="bg-white h-20 flex items-center px-4 flex-1 border-b-[1px] border-slate-100">
@@ -23,10 +27,10 @@ const budgets = await getBudgets(cli, "2023", "04")
 					<div class="font-semibold text-slate-800">{b.name}</div>
 					<div class="text-xs">
 						<span class="font-semibold">Limit: </span> € {b.limit.toFixed(2)}
-						<span class="font-semibold">Used: </span> € {b.used.toFixed(2)}
+						<span class="font-semibold">Used: </span> € {(b.used || 0).toFixed(2)}
 					</div>
 				</div>
-				<div class="text-lg font-semibold text-indigo-600">€ {(b.limit + b.used).toFixed(2)}</div>
+				<div class="text-lg font-semibold text-indigo-600">€ {(b.limit + (b.used || 0)).toFixed(2)}</div>
 			</div>
 		))
 	}

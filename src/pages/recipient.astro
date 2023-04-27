@@ -1,0 +1,58 @@
+---
+import MainLayout from "../features/MainLayout.astro";
+import CoreAction from "../features/CoreAction.astro";
+import InputNumber from "../features/InputNumber.astro";
+import { TabsEnum } from "../components/Header"
+import { Select } from "../components/Select"
+import { getCli, getAccounts, Transfer, saveTransfer, Account } from "../client/fintrack";
+
+
+const isPost = Astro.request.method === "POST"
+const urlCookie = Astro.cookies.get("fintrackApiUrl").value
+const tokenCookie = Astro.cookies.get("fintrackApiToken").value
+
+
+if (urlCookie == undefined || tokenCookie == undefined) {
+	return Astro.redirect("/")
+}
+
+const cli = getCli(urlCookie, tokenCookie)
+
+if (isPost) {
+	const t = await Astro.request.formData()
+	const value = t.get("value")
+	const fromRecipientId = t.get("fromRecipientId")
+	const toRecipientId = t.get("toRecipientId")
+
+	if (fromRecipientId && toRecipientId) {
+		const v = value ? parseFloat(value.toString().replace('€ ', '')) : 0;
+		const transfer: Transfer = {
+			value: v,
+			fromRecipientId: fromRecipientId.toString(),
+			toRecipientId: toRecipientId.toString(),
+		}
+
+		await saveTransfer(cli, transfer);
+		return Astro.redirect('/transfer?success=true')
+	}
+}
+
+const accounts = await getAccounts(cli);
+const total = accounts.reduce((a, c) => a + c.totalValue, 0)
+---
+
+<MainLayout tab={TabsEnum.Recipient}>
+	<div class="bg-white text-center uppecase font-semibold text-xs p-4 border-b-[1px] border-slate-100 text-indigo-600">
+		€ {total.toFixed(2)}
+	</div>
+	{
+		accounts.map((b) => (
+			<div class="bg-white h-20 flex items-center px-4 flex-1 border-b-[1px] border-slate-100">
+				<div class="flex-1">
+					<div class="font-semibold text-slate-800">{b.name}</div>
+				</div>
+				<div class="text-lg font-semibold text-indigo-600">€ {b.totalValue.toFixed(2)}</div>
+			</div>
+		))
+	}
+</MainLayout>

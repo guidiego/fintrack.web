@@ -28,6 +28,7 @@ export const getBudgets = (cli: AxiosInstance, year: string, month: string) =>
 export type Account = {
     id: string;
     name: string;
+    totalValue: number;
 }
 
 export const getAccounts = (cli: AxiosInstance) =>
