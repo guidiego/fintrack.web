@@ -1,0 +1,87 @@
+---
+import ListOfTransactions from "../../features/ListOfTransactions.astro";
+import Modal from "../../features/Modal.astro"
+import CoreAction from "../../features/CoreAction.astro";
+import InputNumber from "../../features/InputNumber.astro";
+
+import { Select } from "../../components/Select";
+import { TextField } from "../../components/TextField";
+import { OpButton } from "../../components/OpButton";
+import { getCli, getBudgets, getAccounts, Transaction, saveTransaction, Account, Budget } from "../../client/fintrack";
+
+const isPost = Astro.request.method === "POST";
+const urlCookie = Astro.cookies.get("fintrackApiUrl").value;
+const tokenCookie = Astro.cookies.get("fintrackApiToken").value;
+const today = new Date();
+const year = today.getFullYear().toString();
+const month = today.getMonth() + 1;
+
+if (urlCookie == undefined || tokenCookie == undefined) {
+	return Astro.redirect("/")
+}
+
+const cli = getCli(urlCookie, tokenCookie)
+
+if (isPost) {
+	const t = await Astro.request.formData()
+	const value = t.get("value")
+	const recipientId = t.get("recipientId")
+	const budgetId = t.get("budgetId")
+	const description = t.get("description")
+	const positive = t.get("positive")
+
+	if (recipientId && budgetId) {
+		const v = value ? parseFloat(value.toString().replace('€ ', '')) : 0;
+		const transaction: Transaction = {
+			value: v * (positive ? 1 : -1),
+			recipientId: recipientId?.toString(),
+			budgetId: budgetId.toString(),
+		}
+
+		if (description) {
+			transaction.description = description.toString()
+		}
+
+		await saveTransaction(cli, transaction);
+		return Astro.redirect('/transaction?success=true')
+	}
+}
+
+const [
+	budgets,
+	accounts
+] = await Promise.all([
+	getBudgets(cli, year, month < 10 ? `0${month}` : month.toString()),
+	getAccounts(cli),
+])
+
+---
+
+<ListOfTransactions>
+    <Modal title="New Transaction">
+        <CoreAction cta="Transact">
+            <div class="relative">
+                <InputNumber>
+                    <div class="absolute right-0 top-0 bottom-0 w-20">
+                        <OpButton />
+                    </div>
+                </InputNumber>
+            </div>
+            <TextField label="Description" name="description" placeholder="Description" />
+            <Select label="Account" name="recipientId">
+                {
+                    accounts.map(({ id, name }) => (
+                        <option value={id}>{name}</option>
+                    ))
+                }
+            </Select>
+            <Select label="Budget" name="budgetId">
+                {
+                    budgets.map(({ id, name }) => (
+                        <option value={id}>{name}</option>
+                    ))
+                }
+            </Select>
+        </CoreAction>
+    </Modal>
+</ListOfTransactions>

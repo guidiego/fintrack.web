@@ -1,37 +1,7 @@
 ---
 import MainLayout from "../features/MainLayout.astro";
-import { TabsEnum } from "../components/Header"
-
-import { getCli, getTransactions, Transaction } from "../client/fintrack";
-
-
-const isPost = Astro.request.method === "POST"
-const urlCookie = Astro.cookies.get("fintrackApiUrl").value
-const tokenCookie = Astro.cookies.get("fintrackApiToken").value
-
-if (urlCookie == undefined || tokenCookie == undefined) {
-	return Astro.redirect("/")
-}
-
-const cli = getCli(urlCookie, tokenCookie)
-const transactions = await getTransactions(cli)
+import { TabsEnum } from "../components/LinkTab"
 ---
 <MainLayout tab={TabsEnum.Dashboard}>
-	{
-		transactions.map((t) => (
-			<div class="bg-white h-20 flex items-center ">
-				<div class={"w-2 h-full " + (t.value < 0 ? "bg-rose-600" : "bg-emerald-600")}></div>
-				<div class="px-4 h-full flex items-center flex-1 border-b-[1px] border-slate-100">
-					<div class="flex-1">
-						<div class="font-semibold text-slate-800">{t.description}</div>
-						<div class="text-xs">
-							<span class="font-semibold">Budget: </span>{t.budgetName || "--"}
-							<span class="font-semibold">Recipient: </span>{t.recipientName || "--"}
-						</div>
-					</div>
-					<div class={"text-lg font-semibold " + (t.value >= 0 ? "text-emerald-600" : "text-rose-700")}>€ {t.value}</div>
-				</div>
-			</div>
-		))
-	}
+	TODO
 </MainLayout>

@@ -1,0 +1,28 @@
+---
+type Props = {
+    title: string;
+}
+---
+<div class="absolute md:fixed bg-black bg-opacity-40 top-0 left-0 bottom-0 right-0 flex justify-center items-center">
+    <div class="bg-slate-100 md:bg-white md:rounded-md md:shadow-sm flex-1 h-full md:flex-none md:h-auto">
+        <div class="bg-white md:bg-transparent flex md:p-3 md:min-w-[400px]">
+            <div class="flex-1 text-sm p-3 text-indigo-600" id="close-modal">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+            </div>
+            <div class="flex-[3] p-3 text-lg text-center font-semibold text-indigo-600">
+                {Astro.props.title}
+            </div>
+            <div class="flex-1 p-3" />
+        </div>
+        <slot />
+    </div>
+</div>
+
+<script>
+    const closebtn = document.getElementById("close-modal")
+    closebtn?.addEventListener("click", () => {
+        history.back()
+    })
+</script>

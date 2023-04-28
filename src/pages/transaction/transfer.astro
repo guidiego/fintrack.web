@@ -1,0 +1,64 @@
+---
+import ListOfTransactions from "../../features/ListOfTransactions.astro";
+import Modal from "../../features/Modal.astro"
+import CoreAction from "../../features/CoreAction.astro";
+import InputNumber from "../../features/InputNumber.astro";
+
+import { Select } from "../../components/Select"
+import { getCli, getAccounts, Transfer, saveTransfer, Account } from "../../client/fintrack";
+
+
+const isPost = Astro.request.method === "POST"
+const urlCookie = Astro.cookies.get("fintrackApiUrl").value
+const tokenCookie = Astro.cookies.get("fintrackApiToken").value
+
+
+if (urlCookie == undefined || tokenCookie == undefined) {
+	return Astro.redirect("/")
+}
+
+const cli = getCli(urlCookie, tokenCookie)
+
+if (isPost) {
+	const t = await Astro.request.formData()
+	const value = t.get("value")
+	const fromRecipientId = t.get("fromRecipientId")
+	const toRecipientId = t.get("toRecipientId")
+
+	if (fromRecipientId && toRecipientId) {
+		const v = value ? parseFloat(value.toString().replace('€ ', '')) : 0;
+		const transfer: Transfer = {
+			value: v,
+			fromRecipientId: fromRecipientId.toString(),
+			toRecipientId: toRecipientId.toString(),
+		}
+
+		await saveTransfer(cli, transfer);
+		return Astro.redirect('/transfer?success=true')
+	}
+}
+
+const accounts = await getAccounts(cli);
+---
+
+<ListOfTransactions>
+    <Modal title="New Transfer">
+        <CoreAction cta="Transfer">
+            <InputNumber />
+            <Select label="From" name="fromRecipientId">
+                {
+                    accounts.map(({ id, name }) => (
+                        <option value={id}>{name}</option>
+                    ))
+                }
+            </Select>
+            <Select label="To" name="toRecipientId">
+                {
+                    accounts.map(({ id, name }) => (
+                        <option value={id}>{name}</option>
+                    ))
+                }
+            </Select>
+        </CoreAction>
+    </Modal>
+</ListOfTransactions>

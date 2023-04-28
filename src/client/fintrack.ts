@@ -43,6 +43,7 @@ export type Transaction = {
     description?: string;
     budgetName?: string;
     recipientName?: string;
+    createdAt?: string;
 }
 
 export const saveTransaction = (cli: AxiosInstance, t: Transaction) =>

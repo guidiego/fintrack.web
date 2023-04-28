@@ -1,5 +1,5 @@
 ---
-import { Header, TabsEnum } from "../components/Header";
+import { LinkTab, TabsEnum } from "../components/LinkTab";
 const showSuccess = Astro.url.searchParams.get('success') || false
 
 interface Props {
@@ -16,9 +16,24 @@ interface Props {
 		<meta name="theme-color" content="#4f46e5" />
 		<title>FinTckr</title>
 	</head>
-	<body class="bg-slate-100">
-		<Header value={Astro.props.tab} />
-        <slot />
+	<body class="bg-slate-100 h-[100dvh] flex flex-col overflow-hidden relative">
+		<header class="p-1 bg-indigo-600 text-white text-center font-light text-sm lg:text-lg">
+            Fin<span class="font-bold">Tckr</span>
+        </header>
+		<main class="flex flex-col flex-1 lg:flex-row 2xl:max-w-5xl 2xl:w-full 2xl:m-auto overflow-hidden">
+			<aside class="flex 2xl:block 2xl:py-10">
+				<nav class="flex flex-1 shadow-md bg-white lg:flex-col 2xl:shadow-none 2xl:gap-2 2xl:bg-transparent">
+				   <LinkTab value={TabsEnum.Dashboard} active={Astro.props.tab == TabsEnum.Dashboard} />
+				   <LinkTab value={TabsEnum.Transaction} active={Astro.props.tab == TabsEnum.Transaction} />
+				   <LinkTab value={TabsEnum.Recipient} active={Astro.props.tab == TabsEnum.Recipient} />
+				   <LinkTab value={TabsEnum.Upcoming} active={Astro.props.tab == TabsEnum.Upcoming} />
+				   <LinkTab value={TabsEnum.Budget} active={Astro.props.tab == TabsEnum.Budget} />
+				</nav>
+			</aside>
+			<section class="lg:p-10 flex-1 overflow-scroll">
+				<slot />
+			</section>
+		</main>
 		<div id="alert" class={(showSuccess ? "" : "hidden ") + "bg-emerald-200 rounded-md shadow-md p-4 absolute bottom-5 left-5 right-5 text-center text-xs font-semibold text-emerald-900 uppercase"}>
 			{Astro.props.alertMessage}
 		</div>

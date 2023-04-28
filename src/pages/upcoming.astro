@@ -1,7 +1,7 @@
 ---
 import MainLayout from "../features/MainLayout.astro";
 
-import { TabsEnum } from "../components/Header";
+import { TabsEnum } from "../components/LinkTab";
 import { getCli, getNextTransactions } from "../client/fintrack";
 
 const urlCookie = Astro.cookies.get("fintrackApiUrl").value;
