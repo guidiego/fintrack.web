@@ -1,0 +1,30 @@
+---
+import MainLayout from "../features/MainLayout.astro";
+import { TabsEnum } from "../components/LinkTab"
+import { getCli, getGoals } from "../client/fintrack";
+
+
+const urlCookie = Astro.cookies.get("fintrackApiUrl").value
+const tokenCookie = Astro.cookies.get("fintrackApiToken").value
+
+
+if (urlCookie == undefined || tokenCookie == undefined) {
+	return Astro.redirect("/")
+}
+
+const cli = getCli(urlCookie, tokenCookie)
+const goals = await getGoals(cli)
+---
+
+<MainLayout tab={TabsEnum.Goal}>
+	{
+		goals.map((g) => (
+			<div class="bg-white h-20 flex items-center px-4 flex-1 border-b-[1px] border-slate-100">
+				<div class="flex-1">
+					<div class="font-semibold text-slate-800">{g.name}</div>
+				</div>
+				<div class="text-lg font-semibold text-indigo-600">€ {g.allocated.toFixed(2)} / € {g.desired.toFixed(2)}</div>
+			</div>
+		))
+	}
+</MainLayout>

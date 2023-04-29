@@ -1,7 +1,108 @@
 ---
 import MainLayout from "../features/MainLayout.astro";
 import { TabsEnum } from "../components/LinkTab"
+import { getCli, getAccounts, getGoals, getBudgets, getUpcommings } from "../client/fintrack";
+import DashboardCard from "../features/DashboardCard.astro";
+import HealthCard from "../features/HealthCard.astro";
+
+
+const urlCookie = Astro.cookies.get("fintrackApiUrl").value
+const tokenCookie = Astro.cookies.get("fintrackApiToken").value
+
+
+if (urlCookie == undefined || tokenCookie == undefined) {
+	return Astro.redirect("/")
+}
+
+const d = new Date();
+const year = d.getFullYear();
+const month = d.getMonth() + 1;
+
+let nextMonth = month + 1;
+const nextYear = nextMonth > 12 ? year + 1 : year;
+
+if (nextYear != year) {
+    nextMonth = nextMonth - 12
+}
+
+const isEndOfMonth = d.getDate() > 26;
+
+const cli = getCli(urlCookie, tokenCookie)
+
+const [
+    accounts,
+    goals,
+    upcommings,
+    budgets,
+    nextBudgets,
+] = await Promise.all([
+    getAccounts(cli),
+    getGoals(cli),
+    getUpcommings(cli),
+    getBudgets(cli, year.toString(), month < 10 ? month.toString() : `0${month}`),
+    isEndOfMonth ? getBudgets(cli, nextYear.toString(), nextMonth < 10 ? nextMonth.toString() : `0${nextMonth}`) : Promise.resolve([]),
+])
+
+const accountTotal = accounts.reduce((a, c) => a + c.totalValue, 0)
+const goalTotal = goals.reduce((a, c) => a + c.allocated, 0)
+const totalUpcomming = upcommings.reduce((a, u) => a + u.value, 0)
+const totalBudgets = budgets.reduce((a, c) => a + (c.limit + c.used), 0)
+const totalNextBudgets = nextBudgets.reduce((a, c) => a + (c.limit + c.used), 0)
+const moneyTotal = accountTotal - goalTotal - totalBudgets - (isEndOfMonth ? totalNextBudgets : 0)
 ---
 <MainLayout tab={TabsEnum.Dashboard}>
-	TODO
+    <!-- {isEndOfMonth && (
+        <div>
+            The month is ending, remember to fix your upcomming and create new budgets!
+        </div>
+    )} -->
+    <div class="grid grid-cols-2 gap-8 px-10 pt-10 pb-5">
+        <HealthCard value={moneyTotal} />
+        <DashboardCard moneyPrefix="€" value={accountTotal} title="Recipient Total" iconClass="bg-emerald-600 text-emerald-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor">
+                <path stroke-linecap="round" strokeline-join="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+            </svg>
+        </DashboardCard>
+        <DashboardCard moneyPrefix="€" value={totalBudgets} title="Budget Available" iconClass="bg-sky-600 text-sky-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" />
+            </svg>
+        </DashboardCard>
+        <DashboardCard moneyPrefix="€" value={totalNextBudgets} title="Budget Available" iconClass="bg-sky-600 text-sky-100" nextMonth={true}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" />
+            </svg>
+        </DashboardCard>
+        <DashboardCard moneyPrefix="€" value={goalTotal} title="Goal Safe Money" iconClass="bg-amber-600 text-amber-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
+            </svg>
+        </DashboardCard>
+        <DashboardCard value={upcommings.length} valuePostFix="To Do" title="Upcomming" iconClass="bg-rose-600 text-rose-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
+            </svg>
+        </DashboardCard>
+    </div>
+    <div class="bg-slate-300 w-2/3 h-[1px] mt-10 mb-8 mx-auto"></div>
+    <div class="px-10">
+        <div class="text-sm flex items-center gap-2 uppercase text-slate-600">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width={1.5} stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" strokeline-join="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+            </svg>
+            <span>Recipients</span>
+        </div>
+        <div class="rounded-md overflow-hidden shadow-md mt-5">
+            {
+                accounts.map((b) => (
+                    <div class="bg-white flex items-center p-4 flex-1 border-b-[1px] border-slate-100">
+                        <div class="flex-1">
+                            <div class="font-semibold text-slate-800">{b.name}</div>
+                        </div>
+                        <div class="font-semibold text-indigo-600">€ {b.totalValue.toFixed(2)}</div>
+                    </div>
+                ))
+            }
+        </div>
+    </div>
 </MainLayout>

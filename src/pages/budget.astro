@@ -1,6 +1,7 @@
 ---
 import MainLayout from "../features/MainLayout.astro";
 import { TabsEnum } from "../components/LinkTab"
+import { Select } from "../components/Select"
 import { getCli, getBudgets } from "../client/fintrack";
 
 
@@ -12,26 +13,82 @@ if (urlCookie == undefined || tokenCookie == undefined) {
 	return Astro.redirect("/")
 }
 
+const d = new Date();
+const year = Astro.url.searchParams.get("year") || d.getFullYear();
+const month = Astro.url.searchParams.get("month") || (d.getMonth() + 1).toString();
+const monthStr = month.length == 2 ? month : `0${month}`;
+
 const cli = getCli(urlCookie, tokenCookie)
-const budgets = await getBudgets(cli, "2023", "04")
+const budgets = await getBudgets(cli, year.toString(), monthStr)
 const total = budgets.reduce((a, c) => a + (c.limit + c.used), 0)
 ---
 <MainLayout tab={TabsEnum.Budget}>
-	<div class="bg-white text-center uppecase font-semibold text-xs p-4 border-b-[1px] border-slate-100 text-indigo-600">
+	<!-- <div class="bg-white text-center uppecase font-semibold text-xs p-4 border-b-[1px] border-slate-100 text-indigo-600">
 		€ {total.toFixed(2)}
+	</div> -->
+	<div class="p-10 flex gap-10">
+		<Select label="Year" className="flex-1" id="year-select" data-actual={year}>
+			<option value="2023">2023</option>
+			<option value="2024">2024</option>
+		</Select>
+		<Select label="Month" className="flex-1" id="month-select" data-actual={monthStr}>
+			<option value="01">Jan</option>
+			<option value="02">Feb</option>
+			<option value="03">Mar</option>
+			<option value="04">Apr</option>
+			<option value="05">May</option>
+			<option value="06">Jun</option>
+			<option value="07">Jul</option>
+			<option value="08">Ago</option>
+			<option value="09">Sep</option>
+			<option value="10">Out</option>
+			<option value="11">Nov</option>
+			<option value="12">Dez</option>
+		</Select>
 	</div>
-	{
-		budgets.map((b) => (
-			<div class="bg-white h-20 flex items-center px-4 flex-1 border-b-[1px] border-slate-100">
-				<div class="flex-1">
-					<div class="font-semibold text-slate-800">{b.name}</div>
-					<div class="text-xs">
-						<span class="font-semibold">Limit: </span> € {b.limit.toFixed(2)}
-						<span class="font-semibold">Used: </span> € {(b.used || 0).toFixed(2)}
+	<div class="px-10">
+		<div class="rounded-lg shadow-md overflow-hidden">
+			{
+				budgets.map((b) => (
+					<div class="bg-white py-3 flex items-center px-5 flex-1 border-b-[1px] border-slate-100">
+						<div class="flex-1">
+							<div class="font-semibold text-slate-800">{b.name}</div>
+							<div class="text-xs">
+								<span class="font-semibold">Limit: </span> € {b.limit.toFixed(2)}
+								<span class="font-semibold">Used: </span> € {(b.used || 0).toFixed(2)}
+							</div>
+						</div>
+						<div class="text-lg font-semibold text-indigo-600">€ {(b.limit + (b.used || 0)).toFixed(2)}</div>
 					</div>
-				</div>
-				<div class="text-lg font-semibold text-indigo-600">€ {(b.limit + (b.used || 0)).toFixed(2)}</div>
-			</div>
-		))
-	}
+				))
+			}
+		</div>
+	</div>
 </MainLayout>
+
+<script>
+	const yearSelect = document.getElementById("year-select") as HTMLSelectElement;
+	const monthSelect = document.getElementById("month-select") as HTMLSelectElement;
+
+	if (yearSelect.dataset.actual) {
+		yearSelect.value = yearSelect.dataset.actual;
+	}
+
+	if (monthSelect.dataset.actual) {
+		monthSelect.value = monthSelect.dataset.actual;
+	}
+
+	yearSelect?.addEventListener("change", (e) => {
+		console.log(e);
+	})
+
+	monthSelect?.addEventListener("change", (e) => {
+		const t = e?.target as HTMLSelectElement;
+		if (t.value) {
+			const u = new URL(window.location.href)
+			u.searchParams.set("month", t.value);
+
+			window.location.href = u.toString();
+		}
+	})
+</script>

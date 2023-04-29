@@ -62,12 +62,25 @@ export type Transfer = {
 export const saveTransfer = (cli: AxiosInstance, t: Transfer) =>
     cli.post<Transfer>("/transfer", t)
 
-export type ToSchedule = {
+export type Upcomming = {
     name: string;
     day: number;
     value: number;
     autoDebit: boolean;
 }
 
-export const getNextTransactions = (cli: AxiosInstance) =>
-    cli.get<{ upcomming: ToSchedule[], lastDay: number }>("/upcomming").then(({ data }) => data)
+export const getUpcommings = (cli: AxiosInstance, day?: string) =>
+    cli.get<Upcomming[]>("/upcomming" + (day ? `?day=${day}` : "")).then(({ data }) => data)
+
+export type Goal = {
+    id: string;
+    name: string;
+    recipientId: string;
+    desired: number;
+    allocated: number;
+    used: number;
+    status: number;
+}
+
+export const getGoals = (cli: AxiosInstance) =>
+    cli.get<Goal[]>("/goal").then(({ data }) => data)

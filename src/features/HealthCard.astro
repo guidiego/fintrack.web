@@ -1,0 +1,25 @@
+---
+import HealthCardInner from "./HealthCardInner.astro";
+
+interface Props {
+    value: number
+}
+---
+
+{
+    Astro.props.value >= 5 && (
+        <HealthCardInner text="Awesome!" slot=""cardClass="bg-emerald-600" iconClass="bg-emerald-800 text-emerald-100" />
+    )
+}
+
+{
+    Astro.props.value < 5 && Astro.props.value >= 0 &&(
+        <HealthCardInner text="Okey" cardClass="bg-amber-600" iconClass="bg-amber-800 text-amber-100" />
+    )
+}
+
+{
+    Astro.props.value < 0 && (
+        <HealthCardInner text="Take Care!" cardClass="bg-rose-600" iconClass="bg-rose-800 text-rose-100" />
+    )
+}
