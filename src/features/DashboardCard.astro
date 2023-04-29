@@ -6,9 +6,10 @@ interface Props {
     value: number;
     iconClass: string;
     nextMonth?: boolean;
+    link?: string;
 }
 ---
-<div class="relative">
+<a class="relative block" href={Astro.props.link || '#'}>
     {
         Astro.props.nextMonth && (
             <div class="absolute z-10 uppercase text-xs bg-indigo-600 text-white rounded-md -right-4 -top-2 p-[2px] px-2 scale-75">
@@ -17,7 +18,7 @@ interface Props {
         )
     }
     <div class="bg-white rounded-md shadow-md relative overflow-hidden">
-        <div class={"absolute -left-8 rounded-full w-24 h-20 flex items-center justify-center " + Astro.props.iconClass}>
+        <div class={"absolute -left-12 md:-left-8 rounded-full w-24 h-20 flex items-center justify-center " + Astro.props.iconClass}>
             <div class="w-16 h-16 rotate-12 ml-4">
                 <slot />
             </div>
@@ -31,4 +32,4 @@ interface Props {
             </div>
         </div>
     </div>
-</div>
+</a>

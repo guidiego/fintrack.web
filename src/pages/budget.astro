@@ -23,10 +23,7 @@ const budgets = await getBudgets(cli, year.toString(), monthStr)
 const total = budgets.reduce((a, c) => a + (c.limit + c.used), 0)
 ---
 <MainLayout tab={TabsEnum.Budget}>
-	<!-- <div class="bg-white text-center uppecase font-semibold text-xs p-4 border-b-[1px] border-slate-100 text-indigo-600">
-		€ {total.toFixed(2)}
-	</div> -->
-	<div class="p-10 flex gap-10">
+	<div class="p-5 py-8 flex gap-6">
 		<Select label="Year" className="flex-1" id="year-select" data-actual={year}>
 			<option value="2023">2023</option>
 			<option value="2024">2024</option>
@@ -46,7 +43,13 @@ const total = budgets.reduce((a, c) => a + (c.limit + c.used), 0)
 			<option value="12">Dez</option>
 		</Select>
 	</div>
-	<div class="px-10">
+	<div class="px-5">
+		<div class="mb-5 rounded-lg shadow-md bg-white py-3 flex items-center px-5 flex-1 border-b-[1px] border-slate-100">
+			<div class="flex-1">
+				<div class="font-semibold text-slate-800">Total</div>
+			</div>
+			<div class="text-lg font-semibold text-indigo-600">€ {total.toFixed(2)}</div>
+		</div>
 		<div class="rounded-lg shadow-md overflow-hidden">
 			{
 				budgets.map((b) => (
